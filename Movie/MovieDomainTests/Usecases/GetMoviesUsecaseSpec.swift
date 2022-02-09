@@ -2,7 +2,7 @@
 //  GetMoviesUsecaseSpec.swift
 //  MovieDomainTests
 //
-//  Created by hekim04 on 2022/01/23.
+//  Created by hbkim on 2022/01/23.
 //
 
 import Quick
@@ -13,15 +13,16 @@ import RxSwift
 import RxTest
 import RxBlocking
 @testable import MovieDomain
+import Darwin
 
 class GetMoviesUsecaseSpec: QuickSpec {
   override func spec() {
-    var usecase: GetMoviesUsecase!
+    var getMovies: GetMoviesUsecase!
     var movieRepository: MockMovieRepository!
 
     beforeEach {
       movieRepository = MockMovieRepository()
-      usecase = GetMoviesUsecase(repository: movieRepository)
+      getMovies = GetMoviesUsecase(repository: movieRepository)
     }
 
     let ironman = Movie(
@@ -43,7 +44,7 @@ class GetMoviesUsecaseSpec: QuickSpec {
 
       do {
         // when (act)
-        let result = try usecase.execute()
+        let result = try getMovies()
           .toBlocking()
           .toArray()
 
@@ -52,6 +53,18 @@ class GetMoviesUsecaseSpec: QuickSpec {
         verify(movieRepository, times(1)).getMovies()
       } catch {
         fail()
+      }
+    }
+
+    it("should return domain error when occurs repository error") {
+      // given (arrange)
+      stub(movieRepository) { repository in
+        when(repository.getMovies()).thenReturn(Observable.error(MockMovieRepositoryError()))
+      }
+
+      // andExpect
+      XCTAssertThrowsError(try getMovies().toBlocking().toArray()) { error in
+        XCTAssertEqual(error as! MovieError, MovieError.failedToLoad)
       }
     }
   }

@@ -2,7 +2,7 @@
 //  Movie.swift
 //  MovieDomain
 //
-//  Created by hekim04 on 2022/01/23.
+//  Created by hbkim on 2022/01/23.
 //
 
 public struct Movie: Equatable {

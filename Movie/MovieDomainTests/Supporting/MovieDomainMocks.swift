@@ -1,10 +1,10 @@
-// MARK: - Mocks generated from file: MovieDomain/Repositories/MovieRepository.swift at 2022-01-23 08:21:21 +0000
+// MARK: - Mocks generated from file: MovieDomain/Repositories/MovieRepository.swift at 2022-02-05 10:27:16 +0000
 
 //
 //  MovieRepository.swift
 //  MovieDomain
 //
-//  Created by hekim04 on 2022/01/23.
+//  Created by hbkim on 2022/01/23.
 //
 
 import Cuckoo
@@ -122,17 +122,87 @@ public class MovieRepositoryStub: MovieRepository {
     
 
     
-    
-    
     public func getMovies() -> Observable<[Movie]>  {
         return DefaultValueRegistry.defaultValue(for: (Observable<[Movie]>).self)
     }
     
-    
-    
     public func setBookmark(movie: Movie, mark: Bool) -> Single<Bool>  {
         return DefaultValueRegistry.defaultValue(for: (Single<Bool>).self)
     }
+    
+}
+
+
+// MARK: - Mocks generated from file: MovieDomain/Repositories/MovieRepositoryError.swift at 2022-02-05 10:27:16 +0000
+
+// 
+//  MovieRepositoryError.swift
+//  MovieDomain
+//
+//  Created by hbkim on 2022/02/05.
+//  
+//
+
+import Cuckoo
+@testable import MovieDomain
+
+
+public class MockMovieRepositoryError: MovieRepositoryError, Cuckoo.ProtocolMock {
+    
+    public typealias MocksType = MovieRepositoryError
+    
+    public typealias Stubbing = __StubbingProxy_MovieRepositoryError
+    public typealias Verification = __VerificationProxy_MovieRepositoryError
+
+    public let cuckoo_manager = Cuckoo.MockManager.preconfiguredManager ?? Cuckoo.MockManager(hasParent: false)
+
+    
+    private var __defaultImplStub: MovieRepositoryError?
+
+    public func enableDefaultImplementation(_ stub: MovieRepositoryError) {
+        __defaultImplStub = stub
+        cuckoo_manager.enableDefaultStubImplementation()
+    }
+    
+
+    
+
+    
+
+    
+
+	public struct __StubbingProxy_MovieRepositoryError: Cuckoo.StubbingProxy {
+	    private let cuckoo_manager: Cuckoo.MockManager
+	
+	    public init(manager: Cuckoo.MockManager) {
+	        self.cuckoo_manager = manager
+	    }
+	    
+	    
+	}
+
+	public struct __VerificationProxy_MovieRepositoryError: Cuckoo.VerificationProxy {
+	    private let cuckoo_manager: Cuckoo.MockManager
+	    private let callMatcher: Cuckoo.CallMatcher
+	    private let sourceLocation: Cuckoo.SourceLocation
+	
+	    public init(manager: Cuckoo.MockManager, callMatcher: Cuckoo.CallMatcher, sourceLocation: Cuckoo.SourceLocation) {
+	        self.cuckoo_manager = manager
+	        self.callMatcher = callMatcher
+	        self.sourceLocation = sourceLocation
+	    }
+	
+	    
+	
+	    
+	}
+}
+
+public class MovieRepositoryErrorStub: MovieRepositoryError {
+    
+
+    
+
     
 }
 

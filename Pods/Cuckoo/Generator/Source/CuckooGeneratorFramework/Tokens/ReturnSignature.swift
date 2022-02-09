@@ -8,13 +8,11 @@
 import Foundation
 
 public struct ReturnSignature {
-    public var isAsync: Bool
     public var throwType: ThrowType?
     public var returnType: WrappableType
     public var whereConstraints: [String]
 
-    public init(isAsync: Bool, throwString: String?, returnType: WrappableType, whereConstraints: [String]) {
-        self.isAsync = isAsync
+    public init(throwString: String?, returnType: WrappableType, whereConstraints: [String]) {
         if let throwString = throwString {
             throwType = ThrowType(string: throwString)
         } else {
@@ -27,10 +25,9 @@ public struct ReturnSignature {
 
 extension ReturnSignature: CustomStringConvertible {
     public var description: String {
-        let asyncString = isAsync ? "async" : nil
-        let trimmedReturnType = returnType.explicitOptionalOnly.sugarized.trimmed
+        let trimmedReturnType = returnType.sugarizedExplicitOnly.trimmed
         let returnString = trimmedReturnType.isEmpty || trimmedReturnType == "Void" ? nil : "-> \(returnType)"
         let whereString = whereConstraints.isEmpty ? nil : "where \(whereConstraints.joined(separator: ", "))"
-        return [asyncString, throwType?.description, returnString, whereString].compactMap { $0 }.joined(separator: " ")
+        return [throwType?.description, returnString, whereString].compactMap { $0 }.joined(separator: " ")
     }
 }

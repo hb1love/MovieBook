@@ -2,7 +2,7 @@
 //  GetMoviesUsecase.swift
 //  MovieDomain
 //
-//  Created by hekim04 on 2022/01/23.
+//  Created by hbkim on 2022/01/23.
 //
 
 import RxSwift
@@ -14,7 +14,13 @@ public class GetMoviesUsecase {
     self.repository = repository
   }
 
-  public func execute() -> Observable<[Movie]> {
+  public func callAsFunction() -> Observable<[Movie]> {
     repository.getMovies()
+      .catchError { error in
+        if error is MovieRepositoryError {
+          return .error(MovieError.failedToLoad)
+        }
+        return .error(MovieError.unknown(error))
+      }
   }
 }

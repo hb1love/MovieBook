@@ -6,8 +6,6 @@
 //  Copyright © 2016 Brightify. All rights reserved.
 //
 
-import Foundation
-
 public protocol Method: Token, HasAccessibility {
     var name: String { get }
     var returnSignature: ReturnSignature { get }
@@ -47,11 +45,7 @@ public extension Method {
             .map { $0 + ": " + $1 }
             .joined(separator: ", ") + lastNamePart + returnSignatureString
     }
-    
-    var isAsync: Bool {
-        return returnSignature.isAsync
-    }
-    
+
     var isThrowing: Bool {
         guard let throwType = returnSignature.throwType else { return false }
         return throwType.isThrowing || throwType.isRethrowing
@@ -69,12 +63,12 @@ public extension Method {
         return parameters.contains { $0.isOptional }
     }
 
-    func isEqual(to other: Token) -> Bool {
+    public func isEqual(to other: Token) -> Bool {
         guard let other = other as? Method else { return false }
         return self.name == other.name && self.parameters == other.parameters && self.returnType == other.returnType
     }
 
-    func serialize() -> [String : Any] {
+    public func serialize() -> [String : Any] {
         let call = parameters.map {
             let referencedName = "\($0.isInout ? "&" : "")\($0.name)"
             if let label = $0.label {
@@ -85,24 +79,26 @@ public extension Method {
         }.joined(separator: ", ")
 
         let stubFunctionPrefix = isOverriding ? "Class" : "Protocol"
-        let returnString = returnType.sugarized == "Void" ? "NoReturn" : ""
-        let throwingString = isThrowing ? "Throwing" : ""
-        let stubFunction = "Cuckoo.\(stubFunctionPrefix)Stub\(returnString)\(throwingString)Function"
+        let stubFunction: String
+        if isThrowing {
+            if returnType.sugarized == "Void" {
+                stubFunction = "Cuckoo.\(stubFunctionPrefix)StubNoReturnThrowingFunction"
+            } else {
+                stubFunction = "Cuckoo.\(stubFunctionPrefix)StubThrowingFunction"
+            }
+        } else {
+            if returnType.sugarized == "Void" {
+                stubFunction = "Cuckoo.\(stubFunctionPrefix)StubNoReturnFunction"
+            } else {
+                stubFunction = "Cuckoo.\(stubFunctionPrefix)StubFunction"
+            }
+        }
 
         let escapingParameterNames = parameters.map { parameter in
             if parameter.isClosure && !parameter.isEscaping {
                 let parameterCount = parameter.closureParamCount
                 let parameterSignature = parameterCount > 0 ? (1...parameterCount).map { _ in "_" }.joined(separator: ", ") : "()"
-
-                // FIXME: Instead of parsing the closure return type here, Tokenizer should do it and pass the information in a data structure
-                let returnSignature: String
-                let closureReturnType = extractClosureReturnType(parameter: parameter.type.sugarized)
-                if let closureReturnType = closureReturnType, !closureReturnType.isEmpty && closureReturnType != "Void" {
-                    returnSignature = " -> " + closureReturnType
-                } else {
-                    returnSignature = ""
-                }
-                return "{ \(parameterSignature)\(returnSignature) in fatalError(\"This is a stub! It's not supposed to be called!\") }"
+                return "{ \(parameterSignature) in fatalError(\"This is a stub! It's not supposed to be called!\") }"
             } else {
                 return parameter.name
             }
@@ -120,8 +116,7 @@ public extension Method {
             "parameterNames": parameters.map { $0.name }.joined(separator: ", "),
             "escapingParameterNames": escapingParameterNames,
             "isInit": isInit,
-            "returnType": returnType.explicitOptionalOnly.sugarized,
-            "isAsync": isAsync,
+            "returnType": returnType.sugarizedExplicitOnly,
             "isThrowing": isThrowing,
             "throwType": returnSignature.throwType?.description ?? "",
             "fullyQualifiedName": fullyQualifiedName,
@@ -138,26 +133,5 @@ public extension Method {
             "attributes": attributes.filter { $0.isSupported },
             "genericParameters": isGeneric ? "<\(genericParametersString)>" : "",
         ]
-    }
-
-    private func extractClosureReturnType(parameter: String) -> String? {
-        var parenLevel = 0
-        for i in 0..<parameter.count {
-            let index = parameter.index(parameter.startIndex, offsetBy: i)
-            let character = parameter[index]
-            if character == "(" {
-                parenLevel += 1
-            } else if character == ")" {
-                parenLevel -= 1
-                if parenLevel == 0 {
-                    let returnSignature = String(parameter[parameter.index(after: index)..<parameter.endIndex])
-                    let regex = try! NSRegularExpression(pattern: "\\s*->\\s*(.*)\\s*")
-                    guard let result = regex.matches(in: returnSignature, range: NSRange(location: 0, length: returnSignature.count)).first else { return nil }
-                    return returnSignature[result.range(at: 1)]
-                }
-            }
-        }
-
-        return nil
     }
 }

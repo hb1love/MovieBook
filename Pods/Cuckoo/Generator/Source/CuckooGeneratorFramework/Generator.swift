@@ -47,9 +47,11 @@ public struct Generator {
             return self.parameterMatchers(for: parameters)
         }
 
-        ext.registerFilter("openNestedClosure") { (value: Any?) in
-            guard let method = value as? Method else { return value }
-            return self.openNestedClosure(for: method)
+        ext.registerFilter("openNestedClosure") { (value: Any?, arguments: [Any?]) in
+            guard let parameters = value as? [MethodParameter] else { return value }
+
+            let s = self.openNestedClosure(for: parameters, throwing: arguments.first as? Bool)
+            return s
         }
 
         ext.registerFilter("closeNestedClosure") { (value: Any?) in
@@ -106,26 +108,15 @@ public struct Generator {
         return type.replacingOccurrences(of: "!", with: "?")
     }
 
-    private func openNestedClosure(for method: Method) -> String {
+    private func openNestedClosure(for parameters: [MethodParameter], throwing: Bool? = false) -> String {
         var fullString = ""
-        for (index, parameter) in method.parameters.enumerated() {
+        for (index, parameter) in parameters.enumerated() {
             if parameter.isClosure && !parameter.isEscaping {
                 let indents = String(repeating: "\t", count: index)
-                let tries = method.isThrowing ? "try " : ""
-                let awaits = method.isAsync ? "await " : ""
-
-                let sugarizedReturnType = method.returnType.sugarized
-                let returnSignature: String
-                if sugarizedReturnType.isEmpty {
-                    returnSignature = sugarizedReturnType
-                } else {
-                    returnSignature = " -> \(sugarizedReturnType)"
-                }
-
-                fullString += "\(indents)return \(tries)\(awaits)withoutActuallyEscaping(\(parameter.name), do: { (\(parameter.name): @escaping \(parameter.type))\(returnSignature) in\n"
+                let tries = (throwing ?? false) ? " try " : " "
+                fullString += "\(indents)return\(tries)withoutActuallyEscaping(\(parameter.name), do: { (\(parameter.name): @escaping \(parameter.type)) in\n"
             }
         }
-
         return fullString
     }
 

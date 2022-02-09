@@ -21,28 +21,15 @@ public protocol ContainerToken: Token, HasAccessibility {
 
 extension ContainerToken {
     public func serialize() -> [String : Any] {
-        func withAdjustedAccessibility(token: Token & HasAccessibility) -> Token & HasAccessibility {
-            // We only want to adjust tokens that are accessible and lower than the enclosing type
-            guard token.accessibility.isAccessible && token.accessibility < accessibility else { return token }
-            var mutableToken = token
-            mutableToken.accessibility = accessibility
-            return mutableToken
-        }
-
-        let accessibilityAdjustedChildren = children.map { child -> Token in
-            guard let childWithAccessibility = child as? HasAccessibility & Token else { return child }
-            return withAdjustedAccessibility(token: childWithAccessibility)
-        }
-
-        let properties = accessibilityAdjustedChildren.compactMap { $0 as? InstanceVariable }
+        let properties = children.compactMap { $0 as? InstanceVariable }
             .filter { $0.accessibility.isAccessible }
             .map { $0.serializeWithType() }
 
-        let methods = accessibilityAdjustedChildren.compactMap { $0 as? Method }
+        let methods = children.compactMap { $0 as? Method }
             .filter { $0.accessibility.isAccessible && !$0.isInit && !$0.isDeinit }
             .map { $0.serializeWithType() }
 
-        let initializers = accessibilityAdjustedChildren.compactMap { $0 as? Method }
+        let initializers = children.compactMap { $0 as? Method }
             .filter { $0.accessibility.isAccessible && $0.isInit && !$0.isDeinit }
             .map { $0.serializeWithType() }
 
@@ -55,7 +42,7 @@ extension ContainerToken {
             "name": name,
             "accessibility": accessibility.sourceName,
             "isAccessible": accessibility.isAccessible,
-            "children": accessibilityAdjustedChildren.map { $0.serializeWithType() },
+            "children": children.map { $0.serializeWithType() },
             "properties": properties,
             "methods": methods,
             "initializers": implementation ? [] : initializers,

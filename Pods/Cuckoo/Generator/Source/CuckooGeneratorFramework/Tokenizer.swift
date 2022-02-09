@@ -99,9 +99,6 @@ public struct Tokenizer {
             let children = subtokens.noneOf(Initializer.self)
             let genericParameters = subtokens.only(GenericParameter.self)
 
-            // FIXME: Remove when SourceKitten fixes the off-by-one error that includes the ending `>` in the last inherited type.
-            let fixedGenericParameters = fixSourceKittenLastGenericParameterBug(genericParameters)
-
             return ProtocolDeclaration(
                 name: name,
                 accessibility: accessibility,
@@ -112,7 +109,7 @@ public struct Tokenizer {
                 children: children,
                 inheritedTypes: tokenizedInheritedTypes,
                 attributes: attributes,
-                genericParameters: fixedGenericParameters)
+                genericParameters: genericParameters)
 
         case Kinds.ClassDeclaration.rawValue:
             let subtokens = tokenize(dictionary[Key.Substructure.rawValue] as? [SourceKitRepresentable] ?? [])
@@ -127,9 +124,6 @@ public struct Tokenizer {
             }
             let genericParameters = subtokens.only(GenericParameter.self)
 
-            // FIXME: Remove when SourceKitten fixes the off-by-one error that includes the ending `>` in the last inherited type.
-            let fixedGenericParameters = fixSourceKittenLastGenericParameterBug(genericParameters)
-
             return ClassDeclaration(
                 name: name,
                 accessibility: accessibility,
@@ -140,7 +134,7 @@ public struct Tokenizer {
                 children: children,
                 inheritedTypes: tokenizedInheritedTypes,
                 attributes: attributes,
-                genericParameters: fixedGenericParameters)
+                genericParameters: genericParameters)
 
         case Kinds.ExtensionDeclaration.rawValue:
             return ExtensionDeclaration(range: range!)
@@ -191,9 +185,6 @@ public struct Tokenizer {
                 }
             }
 
-            // FIXME: Remove when SourceKitten fixes the off-by-one error that includes the ending `>` in the last inherited type.
-            let fixedGenericParameters = fixSourceKittenLastGenericParameterBug(genericParameters)
-
             // When bodyRange != nil, we need to create `ClassMethod` instead of `ProtocolMethod`
             if let bodyRange = bodyRange {
                 return ClassMethod(
@@ -205,7 +196,7 @@ public struct Tokenizer {
                     parameters: namedParameters,
                     bodyRange: bodyRange,
                     attributes: attributes,
-                    genericParameters: fixedGenericParameters)
+                    genericParameters: genericParameters)
             } else {
                 return ProtocolMethod(
                     name: name,
@@ -215,7 +206,7 @@ public struct Tokenizer {
                     nameRange: nameRange!,
                     parameters: namedParameters,
                     attributes: attributes,
-                    genericParameters: fixedGenericParameters)
+                    genericParameters: genericParameters)
             }
 
         case Kinds.GenericParameter.rawValue:
@@ -223,7 +214,7 @@ public struct Tokenizer {
 
         case Kinds.AssociatedType.rawValue:
             let regex = try! NSRegularExpression(pattern: "\\s*:\\s*([^\\s;\\/]+)")
-            guard let range = range else { return nil }
+            guard let nameRange = nameRange, let range = range else { return nil }
             guard let inheritanceMatch = regex.firstMatch(
                 in: source,
                 range: NSMakeRange(range.startIndex, range.endIndex - range.startIndex)) else {
@@ -301,7 +292,6 @@ public struct Tokenizer {
             let inheritedTypeElement = (dictionary[Key.InheritedTypes.rawValue] as? [SourceKitRepresentable] ?? []).first
             let inheritedType = (inheritedTypeElement as? [String: SourceKitRepresentable] ?? [:])[Key.Name.rawValue] as? String
             let inheritanceDeclaration: InheritanceDeclaration?
-
             if let inheritedType = inheritedType {
                 inheritanceDeclaration = .init(name: inheritedType)
             } else {
@@ -419,10 +409,8 @@ public struct Tokenizer {
             switch character {
             case "(", "<", "[":
                 parenLevel += 1
-                currentConstraint.append(character)
             case ")", ">", "]":
                 parenLevel -= 1
-                currentConstraint.append(character)
             case "," where parenLevel == 0:
                 currentConstraint = currentConstraint.trimmed
                 whereConstraints.append(currentConstraint)
@@ -443,7 +431,6 @@ public struct Tokenizer {
     /// - parameter source: A trimmed string containing only the method return signature excluding the trailing brace
     /// - returns: ReturnSignature structure containing the parsed throwString, return type, and where constraints
     private func parseReturnSignature(source: String) -> ReturnSignature {
-        var isAsync = false
         var throwString = nil as String?
         var returnType: WrappableType?
         var whereConstraints = [] as [String]
@@ -452,11 +439,6 @@ public struct Tokenizer {
         parseLoop: while index != source.endIndex {
             let character = source[index]
             switch character {
-            case "a":
-                isAsync = true
-                let asyncString = "async"
-                index = source.index(index, offsetBy: asyncString.count)
-                continue
             case "r" where returnType == nil:
                 throwString = "rethrows"
                 index = source.index(index, offsetBy: throwString!.count)
@@ -482,27 +464,7 @@ public struct Tokenizer {
             index = source.index(after: index)
         }
 
-        return ReturnSignature(isAsync: isAsync, throwString: throwString, returnType: returnType ?? WrappableType.type("Void"), whereConstraints: whereConstraints)
-    }
-
-    // FIXME: Remove when SourceKitten fixes the off-by-one error that includes the ending `>` in the last inherited type.
-    private func fixSourceKittenLastGenericParameterBug(_ genericParameters: [GenericParameter]) -> [GenericParameter] {
-        let fixedGenericParameters: [GenericParameter]
-        if let lastGenericParameter = genericParameters.last,
-            let inheritedType = lastGenericParameter.inheritedType,
-            inheritedType.name.hasSuffix(">>") == true {
-            fixedGenericParameters = genericParameters.dropLast() + [
-                GenericParameter(
-                    name: lastGenericParameter.name,
-                    range: lastGenericParameter.range.lowerBound..<lastGenericParameter.range.upperBound - 1,
-                    inheritedType: InheritanceDeclaration(name: String(inheritedType.name.dropLast()))
-                )
-            ]
-        } else {
-            fixedGenericParameters = genericParameters
-        }
-
-        return fixedGenericParameters
+        return ReturnSignature(throwString: throwString, returnType: returnType ?? WrappableType.type("Void"), whereConstraints: whereConstraints)
     }
 }
 

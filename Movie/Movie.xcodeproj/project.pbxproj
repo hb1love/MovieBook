@@ -26,6 +26,8 @@
 		D87FB6CB279D478300C280D1 /* MovieDomainMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87FB6CA279D478300C280D1 /* MovieDomainMocks.swift */; };
 		D87FB6D0279D495A00C280D1 /* GetMoviesUsecaseSpec.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87FB6CF279D495A00C280D1 /* GetMoviesUsecaseSpec.swift */; };
 		D87FB6D2279D496400C280D1 /* GetMoviesUsecase.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87FB6D1279D496400C280D1 /* GetMoviesUsecase.swift */; };
+		D8EEC6AF27AE6C47000382D7 /* MovieError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EEC6AE27AE6C47000382D7 /* MovieError.swift */; };
+		D8EEC6B127AE79DD000382D7 /* MovieRepositoryError.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EEC6B027AE79DD000382D7 /* MovieRepositoryError.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +96,8 @@
 		D87FB6CA279D478300C280D1 /* MovieDomainMocks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = MovieDomainMocks.swift; path = ../../../../../../HEKIM04/Projects/MovieBook/Movie/MovieDomainTests/Supporting/MovieDomainMocks.swift; sourceTree = "<group>"; };
 		D87FB6CF279D495A00C280D1 /* GetMoviesUsecaseSpec.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GetMoviesUsecaseSpec.swift; path = ../../../../../../HEKIM04/Projects/MovieBook/Movie/MovieDomainTests/Usecases/GetMoviesUsecaseSpec.swift; sourceTree = "<group>"; };
 		D87FB6D1279D496400C280D1 /* GetMoviesUsecase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GetMoviesUsecase.swift; path = ../../../../../../HEKIM04/Projects/MovieBook/Movie/MovieDomain/Usecases/GetMoviesUsecase.swift; sourceTree = "<group>"; };
+		D8EEC6AE27AE6C47000382D7 /* MovieError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieError.swift; sourceTree = "<group>"; };
+		D8EEC6B027AE79DD000382D7 /* MovieRepositoryError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieRepositoryError.swift; sourceTree = "<group>"; };
 		EC6C6267C23F4C6527B0114C /* Pods-MovieDomain-MovieDomainTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MovieDomain-MovieDomainTests.release.xcconfig"; path = "Target Support Files/Pods-MovieDomain-MovieDomainTests/Pods-MovieDomain-MovieDomainTests.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -336,6 +340,7 @@
 			isa = PBXGroup;
 			children = (
 				D87FB6C3279D42CE00C280D1 /* Movie.swift */,
+				D8EEC6AE27AE6C47000382D7 /* MovieError.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -344,6 +349,7 @@
 			isa = PBXGroup;
 			children = (
 				D87FB6C6279D437800C280D1 /* MovieRepository.swift */,
+				D8EEC6B027AE79DD000382D7 /* MovieRepositoryError.swift */,
 			);
 			path = Repositories;
 			sourceTree = "<group>";
@@ -767,7 +773,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "OUTPUT_FILE=\"./${PROJECT_NAME}DomainTests/Supporting/MovieDomainMocks.swift\"\necho \"Generated Mocks File = ${OUTPUT_FILE}\"\n\nINPUT_DIR=\"./${PROJECT_NAME}Domain\"\necho \"Mocks Input Directory = ${INPUT_DIR}\"\n\n# Generate mock files, include as many input files as you'd like to create mocks for.\n\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"MovieDomain\" \\\n--output \"${OUTPUT_FILE}\" \\\n\"${INPUT_DIR}/Repositories/MovieRepository.swift\"\n";
+			shellScript = "OUTPUT_FILE=\"./${PROJECT_NAME}DomainTests/Supporting/MovieDomainMocks.swift\"\necho \"Generated Mocks File = ${OUTPUT_FILE}\"\n\nINPUT_DIR=\"./${PROJECT_NAME}Domain\"\necho \"Mocks Input Directory = ${INPUT_DIR}\"\n\n# Generate mock files, include as many input files as you'd like to create mocks for.\n\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"MovieDomain\" \\\n--output \"${OUTPUT_FILE}\" \\\n\"${INPUT_DIR}/Repositories/MovieRepository.swift\" \\\n\"${INPUT_DIR}/Repositories/MovieRepositoryError.swift\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -822,6 +828,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				D87FB6C7279D437800C280D1 /* MovieRepository.swift in Sources */,
+				D8EEC6AF27AE6C47000382D7 /* MovieError.swift in Sources */,
+				D8EEC6B127AE79DD000382D7 /* MovieRepositoryError.swift in Sources */,
 				D87FB6D2279D496400C280D1 /* GetMoviesUsecase.swift in Sources */,
 				D87FB6C4279D42CE00C280D1 /* Movie.swift in Sources */,
 			);
